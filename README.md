@@ -68,10 +68,7 @@ Comma-separated list of URLs, domains, hosts or wildcard patterns that should st
 
 Examples:
 
-    example.org
-    *.example.com
-    https://docs.example.net/manual/*
-    localhost:8080
+    example.org, *.example.com, https://docs.example.net/manual/*, kb.example.net/articles/*, localhost:8080, 192.0.2.10:8080
 
 Supported forms:
 
@@ -79,7 +76,9 @@ Supported forms:
     *.example.org
     example.org/docs/*
     https://example.org/docs/*
+    kb.example.net/articles/*
     localhost:8080
+    192.0.2.10:8080
 
 A plain domain such as `example.org` matches both `example.org` and subdomains such as `www.example.org` or `docs.example.org`.
 
@@ -89,16 +88,16 @@ Comma-separated list of URLs, domains, hosts or wildcard patterns that must open
 
 This wins over `URL_EXTERN_EXCEPTIONS`.
 
-Example:
+Examples:
 
-    example.org/downloads/*, https://docs.example.net/private/*
+    example.org/downloads/*, https://docs.example.net/private/*, *.example.com/export/*, localhost:8080/admin/*
 
 With this configuration:
 
-    URL_EXTERN_EXCEPTIONS: example.org
-    URL_EXTERN_FORCE_NEW_TAB: example.org/downloads/*
+    URL_EXTERN_EXCEPTIONS: example.org, docs.example.net, localhost:8080
+    URL_EXTERN_FORCE_NEW_TAB: example.org/downloads/*, https://docs.example.net/private/*
 
-Most `example.org` links stay in the same tab, but `example.org/downloads/*` links open in a new tab.
+Most `example.org`, `docs.example.net` and `localhost:8080` links stay in the same tab, but the explicit download/private sections open in a new tab.
 
 This list can also force same-origin `http://` or `https://` links into a new tab when you explicitly add them.
 
@@ -106,18 +105,19 @@ This list can also force same-origin `http://` or `https://` links into a new ta
 
 Allowed values:
 
-    new
+    browser
     current
+    new
 
 Recommended default:
 
-    new
+    browser
 
 Use:
 
-    new
+    browser
 
-to let the browser move focus to the opened tab/window.
+to leave the normal new-tab focus behaviour to the browser and the user's settings. This is the safest default because it uses the standard link path with `target="_blank"` and `rel="noopener noreferrer"`.
 
 Use:
 
@@ -125,7 +125,13 @@ Use:
 
 to try to keep focus on the current Shaarli tab after opening the link.
 
-Browser and user settings can still override focus behaviour.
+Use:
+
+    new
+
+to try to move focus to the newly opened tab/window.
+
+Browser and user settings can still override focus behaviour. The `current` and `new` modes are applied to normal left-clicks; modifier-clicks still follow the browser's native behaviour. For those scripted focus modes, the plugin opens the tab with `window.open()` and clears `window.opener` as soon as the browser allows it.
 
 ### URL_EXTERN_RESPECT_EXPLICIT_TARGETS
 
@@ -156,8 +162,8 @@ So the explicit new-tab list always wins over the same-tab exception list.
 Theme or custom HTML authors can opt out a single link with either of these attributes:
 
 ```html
-<a href="https://example.org" data-url-extern="ignore">Example</a>
-<a href="https://example.org" data-url-extern-ignore>Example</a>
+<a href="https://docs.example.net/manual/" data-url-extern="ignore">Manual</a>
+<a href="https://kb.example.net/articles/123" data-url-extern-ignore>Knowledge base article</a>
 ```
 
 ## Good default examples
@@ -167,23 +173,23 @@ Open all external links in a new tab:
     URL_EXTERN_ENABLED: 1
     URL_EXTERN_EXCEPTIONS:
     URL_EXTERN_FORCE_NEW_TAB:
-    URL_EXTERN_NEW_TAB_FOCUS: new
+    URL_EXTERN_NEW_TAB_FOCUS: browser
     URL_EXTERN_RESPECT_EXPLICIT_TARGETS: 0
 
-Open external links in a new tab, but keep a documentation site in the same tab:
+Open external links in a new tab, but keep selected sites and local tools in the same tab:
 
     URL_EXTERN_ENABLED: 1
-    URL_EXTERN_EXCEPTIONS: docs.example.org
+    URL_EXTERN_EXCEPTIONS: docs.example.org, kb.example.net/articles/*, localhost:8080
     URL_EXTERN_FORCE_NEW_TAB:
-    URL_EXTERN_NEW_TAB_FOCUS: new
+    URL_EXTERN_NEW_TAB_FOCUS: browser
     URL_EXTERN_RESPECT_EXPLICIT_TARGETS: 0
 
-Keep a domain in the same tab, except a specific section:
+Keep selected domains in the same tab, except specific sections:
 
     URL_EXTERN_ENABLED: 1
-    URL_EXTERN_EXCEPTIONS: example.org
-    URL_EXTERN_FORCE_NEW_TAB: example.org/downloads/*
-    URL_EXTERN_NEW_TAB_FOCUS: new
+    URL_EXTERN_EXCEPTIONS: example.org, *.example.com, docs.example.net, localhost:8080
+    URL_EXTERN_FORCE_NEW_TAB: example.org/downloads/*, https://docs.example.net/private/*, *.example.com/export/*, localhost:8080/admin/*
+    URL_EXTERN_NEW_TAB_FOCUS: browser
     URL_EXTERN_RESPECT_EXPLICIT_TARGETS: 0
 
 Try to keep Shaarli focused after opening new tabs:
@@ -192,6 +198,14 @@ Try to keep Shaarli focused after opening new tabs:
     URL_EXTERN_EXCEPTIONS:
     URL_EXTERN_FORCE_NEW_TAB:
     URL_EXTERN_NEW_TAB_FOCUS: current
+    URL_EXTERN_RESPECT_EXPLICIT_TARGETS: 0
+
+Try to move focus to the opened tab:
+
+    URL_EXTERN_ENABLED: 1
+    URL_EXTERN_EXCEPTIONS:
+    URL_EXTERN_FORCE_NEW_TAB:
+    URL_EXTERN_NEW_TAB_FOCUS: new
     URL_EXTERN_RESPECT_EXPLICIT_TARGETS: 0
 
 ## License
