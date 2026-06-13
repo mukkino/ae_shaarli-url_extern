@@ -1,7 +1,5 @@
 # AE URL Extern for Shaarli
 
-Version 0.3.0
-
 Configurable external-link target plugin for Shaarli v0.16.x.
 
 This version opens external links in a new tab, allows selected URLs to stay in the same tab, allows selected URLs to force new-tab behaviour even when they also match the exception list, and lets you choose the preferred focus behaviour.
