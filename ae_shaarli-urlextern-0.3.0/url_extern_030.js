@@ -36,7 +36,7 @@
             enabled: true,
             exceptions: [],
             forceNewTab: [],
-            newTabFocus: "new",
+            newTabFocus: "browser",
             respectExplicitTargets: false
         };
 
@@ -61,8 +61,8 @@
                 config.forceNewTab = cleanPatternList(parsed.forceNewTab);
             }
 
-            if (parsed.newTabFocus === "current") {
-                config.newTabFocus = "current";
+            if (["browser", "current", "new"].indexOf(parsed.newTabFocus) !== -1) {
+                config.newTabFocus = parsed.newTabFocus;
             }
 
             if (typeof parsed.respectExplicitTargets === "boolean") {
@@ -186,7 +186,7 @@
         anchor.setAttribute("target", "_blank");
         anchor.dataset[DATA_MANAGED] = "1";
         anchor.dataset[DATA_NEW_TAB] = "1";
-        anchor.dataset[DATA_FOCUS] = focusMode || "new";
+        anchor.dataset[DATA_FOCUS] = focusMode || "browser";
         addRelToken(anchor, "noopener");
         addRelToken(anchor, "noreferrer");
     }
@@ -267,7 +267,7 @@
         }
 
         if (isSameOrigin(url)) {
-            clearManaged(anchor);
+            markForSameWindow(anchor);
             return;
         }
 
@@ -320,9 +320,33 @@
         return element.closest("a[data-url-extern-new-tab=\"1\"]");
     }
 
-    function openInBackground(anchor) {
-        var opened = window.open(anchor.href, "_blank", "noopener,noreferrer");
+    function openNewTabForFocusControl(anchor) {
+        var opened = window.open(anchor.href, "_blank");
 
+        // The scripted focus modes need a window handle. Detach the opener as soon
+        // as possible so the new page cannot control the Shaarli tab.
+        if (opened) {
+            try {
+                opened.opener = null;
+            } catch (error) {
+                // Browser security policies win.
+            }
+        }
+
+        return opened;
+    }
+
+    function tryFocusOpenedTab(opened) {
+        if (opened && typeof opened.focus === "function") {
+            try {
+                opened.focus();
+            } catch (error) {
+                // Browser focus policies win.
+            }
+        }
+    }
+
+    function tryKeepCurrentTabFocused(opened) {
         if (opened && typeof opened.blur === "function") {
             try {
                 opened.blur();
@@ -352,7 +376,9 @@
                 return;
             }
 
-            if ((anchor.dataset[DATA_FOCUS] || "new") !== "current") {
+            var focusMode = anchor.dataset[DATA_FOCUS] || "browser";
+
+            if (focusMode === "browser") {
                 return;
             }
 
@@ -361,7 +387,17 @@
             }
 
             event.preventDefault();
-            openInBackground(anchor);
+
+            var opened = openNewTabForFocusControl(anchor);
+
+            if (focusMode === "current") {
+                tryKeepCurrentTabFocused(opened);
+                return;
+            }
+
+            if (focusMode === "new") {
+                tryFocusOpenedTab(opened);
+            }
         }, false);
     }
 

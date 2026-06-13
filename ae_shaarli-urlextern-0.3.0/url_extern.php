@@ -77,10 +77,11 @@ function url_extern_allowed_focus($focus)
     return url_extern_allow(
         $focus,
         array(
-            'new',
+            'browser',
             'current',
+            'new',
         ),
-        'new'
+        'browser'
     );
 }
 
@@ -136,7 +137,7 @@ function url_extern_settings($conf)
     );
 
     $newTabFocus = url_extern_allowed_focus(
-        url_extern_conf($conf, 'URL_EXTERN_NEW_TAB_FOCUS', 'new')
+        url_extern_conf($conf, 'URL_EXTERN_NEW_TAB_FOCUS', 'browser')
     );
 
     $respectExplicitTargets = url_extern_bool(
@@ -213,7 +214,7 @@ function hook_url_extern_render_footer($data, $conf)
     );
 
     if ($json === false) {
-        $json = '{"enabled":true,"exceptions":[],"forceNewTab":[],"newTabFocus":"new","respectExplicitTargets":false}';
+        $json = '{"enabled":true,"exceptions":[],"forceNewTab":[],"newTabFocus":"browser","respectExplicitTargets":false}';
     }
 
     if (!isset($data['endofpage']) || !is_array($data['endofpage'])) {
@@ -241,8 +242,8 @@ function url_extern_translation()
     // meta
     t('Opens external Shaarli links in a new tab, with same-window exceptions, forced-new-tab overrides, focus behaviour and opt-out support.');
     t('Enable behaviour while the plugin itself is active. Use 1/true/on/yes to enable, 0/false/off/no to disable. Default: 1');
-    t('Comma-separated same-window exceptions. Supports domains, hosts with ports, URL patterns and wildcards. Examples: example.org, *.example.com, https://docs.example.net/manual/*');
-    t('Comma-separated URLs/domains that must open in a new tab even if they also match the exception list. Supports the same pattern syntax.');
-    t('New-tab focus behaviour: new or current. Use new to let the browser move focus to the opened tab, or current to try to keep focus on Shaarli. Default: new');
+    t('Comma-separated same-window exceptions. Supports domains, hosts with ports, URL patterns and wildcards. Examples: example.org, *.example.com, https://docs.example.net/manual/*, kb.example.net/articles/*, localhost:8080');
+    t('Comma-separated URLs/domains that must open in a new tab even if they also match the exception list. Supports the same pattern syntax. Examples: example.org/downloads/*, https://docs.example.net/private/*, *.example.com/export/*');
+    t('New-tab focus behaviour: browser, current or new. Use browser for normal target=_blank handling, current to try to keep Shaarli focused, or new to try to focus the opened tab. Default: browser');
     t('Do not override links that already have a target attribute. Use 1/true/on/yes to respect existing targets, 0/false/off/no to force plugin behaviour. Default: 0');
 }
